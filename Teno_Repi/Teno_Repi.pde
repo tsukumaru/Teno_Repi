@@ -19,7 +19,7 @@ void draw() {
   scale(2);
   opencv.loadImage(video);
   //println("getH: "+opencv.getH()); -> null
-  //これでRGBをHSBに変換
+  //これでRGBをHSVに変換
   opencv.useColor(PApplet.HSB);
   //println("getH: "+opencv.getH()); ->Matの内容が表示された
   opencv.blur(10, 10);
