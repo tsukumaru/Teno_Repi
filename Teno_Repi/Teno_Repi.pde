@@ -18,8 +18,13 @@ void setup() {
 void draw() {
   scale(2);
   opencv.loadImage(video);
-
+  //println("getH: "+opencv.getH()); -> null
+  //これでRGBをHSBに変換
+  opencv.useColor(PApplet.HSB);
+  //println("getH: "+opencv.getH()); ->Matの内容が表示された
+  opencv.blur(10, 10);
   image(video, 0, 0 );
+  
 
   noFill();
   stroke(255, 0, 0);
