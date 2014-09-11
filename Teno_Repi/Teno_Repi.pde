@@ -1,45 +1,61 @@
-import gab.opencv.*;
 import processing.video.*;
-import java.awt.*;
+// import java.awt.*;
 
 Capture video;
-OpenCV opencv;
 
 void setup() {
   size(640, 480);
-  video = new Capture(this, 640/2, 480/2);
-  opencv = new OpenCV(this, 640/2, 480/2);
-  //なにを検出したいか（ここを手に変えればできる？）
-  opencv.loadCascade(OpenCV.CASCADE_FRONTALFACE);  
+  video = new Capture(this, width, height);
 
   video.start();
+  loadPixels(); //windowのピクセルにpixels[]で参照できる
 }
 
 void draw() {
-  scale(2);
-  opencv.loadImage(video);
-  //println("getH: "+opencv.getH()); -> null
-  //これでRGBをHSVに変換
-  opencv.useColor(PApplet.HSB);
-  //println("getH: "+opencv.getH()); ->Matの内容が表示された
-  opencv.blur(10, 10);
-  image(video, 0, 0 );
-  
+  // background(0);
+  if(video.available()){
+    video.read();
+    video.loadPixels(); //captureしたカメラ画像のピクセルを取得
 
-  noFill();
-  stroke(255, 0, 0);
-  strokeWeight(3);
-  //検出した顔の配列
-  Rectangle[] faces = opencv.detect();
-  println(faces.length);
+    colorMode(HSB);
+    for (int y = 0; y < video.height; ++y) {
+      for (int x = 0; x < video.width; ++x) {
+        // int pixelColor = video.pixels[y*video.width + x];
 
-  for (int i = 0; i < faces.length; i++) {
-    println(faces[i].x + "," + faces[i].y);
-    rect(faces[i].x, faces[i].y, faces[i].width, faces[i].height);
+       // float h = hue(pixelColor);
+       // float s = saturation(pixelColor);
+       // float v = brightness(pixelColor);
+
+       //  pixels[y*video.width + x] = color(h, s, v);
+       medianFilter(video, x, y);
+      }
+    }
+    updatePixels();
   }
 }
 
-//一度captureしたら次の画像へ
-void captureEvent(Capture c) {
-  c.read();
+void medianFilter(Capture video, int x, int y){
+  if (x != 0 && y != 0 && x != video.width - 1 && y != video.height - 1) {
+    float a[] = new float[9];
+    a[0] = video.pixels[(y - 1) * video.width + (x - 1)];
+    a[1] = video.pixels[(y - 1) * video.width + x];
+    a[2] = video.pixels[(y - 1) * video.width + (x + 1)];
+    a[3] = video.pixels[y * video.width + (x - 1)];
+    a[4] = video.pixels[y * video.width + x];
+    a[5] = video.pixels[y * video.width + (x + 1)];
+    a[6] = video.pixels[(y + 1) * video.width + (x - 1)];
+    a[7] = video.pixels[(y + 1) * video.width + x];
+    a[8] = video.pixels[(y + 1) * video.width + (x + 1)];
+
+    for (int i = 0; i < a.length - 1; ++i) {
+      for (int j = i + 1; j < a.length; ++j) {
+        if(a[i] > a[j]){
+          float tmp = a[i];
+          a[i] = a[j];
+          a[j] = tmp;
+        }
+      }
+    }
+    set(x, y, color(a[4]));
+  }
 }
