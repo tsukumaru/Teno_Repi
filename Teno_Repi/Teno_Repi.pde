@@ -18,19 +18,27 @@ void draw() {
     video.loadPixels(); //captureしたカメラ画像のピクセルを取得
 
     colorMode(HSB);
+    // image(video, 0, 0);
+    filter(BLUR, 6); //パラメータ無しでガウシアンフィルタ
     for (int y = 0; y < video.height; ++y) {
       for (int x = 0; x < video.width; ++x) {
-         int pixelColor = video.pixels[y*video.width + x];
-
-        float h = hue(pixelColor);
-        float s = saturation(pixelColor);
-        float v = brightness(pixelColor);
-
-        pixels[y*video.width + x] = color(h, s, v);
-        
+        toFleshColorBinarizationIm(video, x, y);
+       
       }
     }
     updatePixels();
-    filter(BLUR);
   }
+}
+
+//肌色で2値化
+void toFleshColorBinarizationIm(Capture video, int x, int y){
+ int pixelColor = video.pixels[y*video.width + x];
+
+ float h = hue(pixelColor);
+ // float s = saturation(pixelColor);
+ // float v = brightness(pixelColor);
+ if (h >= 0.0 && h <= 30.0)
+   pixels[y*video.width + x] = color(0);
+  else
+   pixels[y*video.width + x] = color(180);
 }
