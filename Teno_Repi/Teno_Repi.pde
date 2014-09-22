@@ -1,11 +1,14 @@
 import processing.video.*;
-// import java.awt.*;
+import gab.opencv.*;
+import java.util.ArrayList;
 
 Capture video;
+OpenCV opcv;
 
 void setup() {
   size(640, 480);
   video = new Capture(this, width, height);
+  opcv = new OpenCV(this, width, height);
 
   video.start();
   loadPixels(); //windowのピクセルにpixels[]で参照できる
@@ -16,15 +19,15 @@ void draw() {
   if(video.available()){
     video.read();
     video.loadPixels(); //captureしたカメラ画像のピクセルを取得
+    image(video, 0, 0);
 
     colorMode(HSB);
-    // image(video, 0, 0);
     filter(BLUR); //パラメータ無しでガウシアンフィルタ
     //明度で2値化
     toFleshColorBinarizationIm(video);
     //video.filter(DILATE); //膨張処理
     distTransform(video);
-   
+    findHandContour(video);
     updatePixels();
   }
 }
@@ -56,12 +59,12 @@ void distTransform(Capture video){
       //距離画像作成
       //左上から右下へ
       float min = brightness(video.pixels[index]);
-      if (x - 1 >= 0) 
+      if (x - 1 >= 0)
         min = min(min, brightness(video.pixels[y * video.width + (x-1)]) + 1);
       if(y - 1 >= 0)
         min = min(min, brightness(video.pixels[(y-1) * video.width + x]) + 1);
       video.pixels[index] = color(0, 0, min);
-      pixels[index] = color(0, 0, min * 10);
+      pixels[index] = color(0, 0, min * min * 10);
 
       //逆方向から
       int inv_x = video.width - 1 - x;
@@ -73,7 +76,20 @@ void distTransform(Capture video){
       if (inv_y + 1 <= video.height - 1)
         min = min(min, brightness(video.pixels[(inv_y + 1) * video.height + inv_x]) + 1);
       video.pixels[inv_index] = color(0, 0, min);
-      pixels[inv_index] = color(0, 0, min * 10);
+      pixels[inv_index] = color(0, 0, min * min * 10);
     }
+  }
+}
+
+void findHandContour(Capture video){
+  opcv.loadImage(video);
+  ArrayList<Contour> contours = new ArrayList(opcv.findContours(false, true));
+
+  Contour hand = contours.get(0);
+  ArrayList<PVector> handVectors = hand.getPoints();
+  for (int i = 0; i < handVectors.size(); ++i) {
+    PVector hv = handVectors.get(i);
+    int handIndex = int(hv.y * video.width + hv.x);
+    pixels[handIndex] = color(3, 81, 50);
   }
 }
