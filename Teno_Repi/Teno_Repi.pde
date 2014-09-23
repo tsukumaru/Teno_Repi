@@ -84,6 +84,9 @@ void distTransform(Capture video){
         min = min(min, brightness(video.pixels[(inv_y + 1) * video.height + inv_x]) + 1);
       video.pixels[inv_index] = color(0, 0, min);
       // pixels[inv_index] = color(0, 0, min * 10);
+
+
+      
     }
   }
 }
