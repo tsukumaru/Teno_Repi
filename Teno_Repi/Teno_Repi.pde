@@ -41,7 +41,7 @@ void toFleshColorBinarizationIm(Capture video){
      float h = hue(pixelColor);
      float s = saturation(pixelColor);
      float v = brightness(pixelColor);
-      if (h >= 0 && h <= 15 && s >= 30 && v >= 30){//default 0<=h<=30,s>=30,v>=30
+      if (h >= 0 && h <= 30 && s >= 30 && v >= 50){//default 0<=h<=30,s>=30,v>=30
         video.pixels[y*video.width + x] = color(h, s, 100);
         // pixels[y * video.width + x] = color(3, 81, 50);
       }
@@ -84,23 +84,27 @@ void distTransform(Capture video){
         min = min(min, brightness(video.pixels[(inv_y + 1) * video.height + inv_x]) + 1);
       video.pixels[inv_index] = color(0, 0, min);
       // pixels[inv_index] = color(0, 0, min * 10);
-
-
-      
     }
   }
 }
 
 //手の輪郭を求める
-void findHandContour(Capture video){
+ArrayList<PVector> getHandVectors(Capture video){
   opcv.loadImage(video);
+  //findContours(findHoles, sort) -> false, true
   ArrayList<Contour> contours = new ArrayList(opcv.findContours(false, true));
 
-  Contour hand = contours.get(0);
+  Contour hand = contours.get(0); //一番面積の大きいものを手とする
   ArrayList<PVector> handVectors = hand.getPoints();
+  return handVectors;
+}
+
+void findHandContour(Capture video){
+  ArrayList<PVector> handVectors = (ArrayList<PVector>)getHandVectors(video).clone();
   for (int i = 0; i < handVectors.size(); ++i) {
     PVector hv = handVectors.get(i);
     int handIndex = int(hv.y * video.width + hv.x);
-    pixels[handIndex] = color(0, 0, 0);
+    pixels[handIndex] = color(3, 81, 50);
   }
 }
+
